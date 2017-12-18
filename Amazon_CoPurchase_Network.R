@@ -3,6 +3,9 @@
 #AMAZON Co-purchase network data
 ##############################################
 
+#-------------------------------------------------
+#Calibration, Data Imports, Data Manipulations
+#-------------------------------------------------
 library(igraph)
 library(dplyr)
 library(data.table)
@@ -19,8 +22,6 @@ Amazon_May_05<-read.table("Amazon0505.txt", sep="\t")
 Amazon_Jun_01<-read.table("Amazon0601.txt", sep="\t")
 Amazon_meta  <-read.csv("Amazon-meta.csv", sep=",", header=TRUE, fill=TRUE)
 load("SocialMediaProject.RData") 
-
-# Amazon_Mar_02[Amazon_Mar_02$V1 ==  185364,]
 
 #---Analytical dataset creation or Data manipulations (Joining)
 #Quality check->Checking which IDs have more than row
@@ -96,39 +97,39 @@ network_EDA<-function(mygraph){
   triad_census_mygraph<-triad_census(mygraph)
   
   #---Diameter & Nodes along the diameter
-  #dia_mygraph<-diameter(mygraph,directed=T,weights=NA)
-  #dia_nodes_mygraph<-as.vector(get_diameter(mygraph, directed=T))
+  dia_mygraph<-diameter(mygraph,directed=T,weights=NA)
+  dia_nodes_mygraph<-as.vector(get_diameter(mygraph, directed=T))
   
   #---Centrality measures
-  #betwn_cen_mygraph<-betweenness(mygraph, directed=T, weights=NA)
-  #close_cen_mygraph<-closeness(mygraph, mode="all", weights=NA) 
-  #eigen_cen_mygraph<-eigen_centrality(mygraph, directed=T, weights=NA)
+  betwn_cen_mygraph<-betweenness(mygraph, directed=T, weights=NA)
+  close_cen_mygraph<-closeness(mygraph, mode="all", weights=NA) 
+  eigen_cen_mygraph<-eigen_centrality(mygraph, directed=T, weights=NA)
   
   #---Hubs and Authorities
   hub_score_mygraph<-hub_score(mygraph, weights=NA)$vector
   ath_score_mygraph<-authority_score(mygraph, weights=NA)$vector
   
   #---Distances and Paths
-  #mean_dist_mygraph<-mean_distance(mygraph, directed=T)
-  #count_dist_mygraph<-distances(mygraph)
+  mean_dist_mygraph<-mean_distance(mygraph, directed=T)
+  count_dist_mygraph<-distances(mygraph)
   
   #---Cliques, Subgroups and Communities
   #First making it undirected
   UDNW_mygraph<-as.undirected(mygraph, mode= "collapse")
   
   #Cliques
-  #cliques(mygraph) # list of cliques       
-  #sapply(cliques(mygraph), length) # clique sizes
-  #largest_cliques(mygraph)
+  cliques(mygraph) # list of cliques       
+  sapply(cliques(mygraph), length) # clique sizes
+  largest_cliques(mygraph)
   
   #Communities
-  #clus_fast_mygraph<-fastgreedy.community(as.undirected(mygraph))
+  clus_fast_mygraph<-fastgreedy.community(as.undirected(mygraph))
   
   #---Assortativity and Homophily
   deg_asortvty_mygraph<-assortativity_degree(mygraph, directed=T)
   
   #---Giant component
-  #giant_comp_mygraph<-giant.component.extract(mygraph, directed = TRUE, bipartite.proj = FALSE, num.proj = 1)
+  giant_comp_mygraph<-giant.component.extract(mygraph, directed = TRUE, bipartite.proj = FALSE, num.proj = 1)
   
   
   #********EDA-PLOTS**********
@@ -190,12 +191,10 @@ network_EDA(g2)
 network_EDA(g3)
 network_EDA(g4)
 
-Amazon_meta[247341,]
 
-#__________________________________________________________________________________________________
-  #GRAPH G1- TIME STAMP 1
-#__________________________________________________________________________________________________
-
+#----------------------------------------------------------
+#Components & Community Detection: GRAPH G1- TIME STAMP 1
+#----------------------------------------------------------
 get.vertex.attribute(g1)
 tempg1 <- g1
 
@@ -300,10 +299,10 @@ plot.igraph(graph2,vertex.size=3, edge.arrow.size = 0.4,
 fast_table.g[117,]
 fast_table.g[126,]
 
-#__________________________________________________________________________________________________
-  #GRAPH G2- TIME STAMP 2
-#__________________________________________________________________________________________________
 
+#----------------------------------------------------------
+#Components & Community Detection: GRAPH G2- TIME STAMP 2
+#----------------------------------------------------------
 get.vertex.attribute(g2)
 tempg2 <- g2
 
@@ -409,9 +408,9 @@ fast_table.g[126,]
 graph12 <- induced.subgraph(giant_comp.g2,louvain_giantg2$membership == 61)
 
 
-#__________________________________________________________________________________________________
-  #GRAPH G3- TIME STAMP 3
-#__________________________________________________________________________________________________
+#----------------------------------------------------------
+#Components & Community Detection: GRAPH G3- TIME STAMP 3
+#----------------------------------------------------------
 get.vertex.attribute(g3)
 tempg3 <- g3
 
@@ -440,9 +439,9 @@ fast_table.g <- table(c.m.l.g3, group.giantg3, useNA = c("no"))
 max(c.m.l.g3) #170 communities
 
 
-#__________________________________________________________________________________________________
-  #GRAPH G4- TIME STAMP 4
-#__________________________________________________________________________________________________
+#----------------------------------------------------------
+#Components & Community Detection: GRAPH G4- TIME STAMP 4
+#----------------------------------------------------------
 get.vertex.attribute(g4)
 tempg4 <- g4
 
@@ -471,7 +470,6 @@ fast_table.g <- table(c.m.l.g4, group.giantg4, useNA = c("no"))
 max(c.m.l.g4) #182 communities
 
 #**********SUMMARY************************************************************
-
 #giant_comp_und1 = Undirected graph1
 #giant_comp.g1 = Giant Component of g1
 #c.m.l.g1 = membership g1
@@ -521,7 +519,6 @@ for (i in seq(1,max(c.m.l.g1),1))
   
 }  
   
-
 #------------------GRAPH G2-TIME STAMP2-Communities---------------------------------------
 community <- rep(NA,max(c.m.l.g2))
 table.g2 <- as.data.frame(community)
@@ -600,10 +597,11 @@ for (i in seq(1,max(c.m.l.g4),1))
   table.g4$CommunitiesFormed[i] <- max(c.m.gr)
 }  
 
-#*************************************************************  
-#******FINDING CONSISTENT PAIRS WITHIN SAME COMMUNITY
-#*************************************************************  
 
+#---------------------------------------------------------------------
+#FINDING CONSISTENT PRODUCT PAIRS WITHIN SAME COMMUNITY (ACROSS TIME)
+#---------------------------------------------------------------------
+  
 #---Data Creation for all years at vertex, community and subcommunity level
 membership.table.g1 <- subset(membership.table.g1,!is.na(membership.table.g1$Vertex))
 sum(is.na(membership.table.g1))
@@ -675,7 +673,7 @@ V_common<-inner_join(data.table(top_deg_V_g4,key="NodeID"),
 
 
 #----Checking consistency of pairs for NodeID-6 across 4 timestamps
-#---Pairs in time stamps
+#---Pairs in diffrent time stamps
 #Note: Here x corresponds to NodeID, cutoff/sum_out correponds to weight of #times pairs repeat occurrence (ranges from 1 to 10) 
 #More cutoff corresponds to more confidence in consistent pair possibility
 #Cutoff=1 means copurchase only in timestamp1, Cutoff=8 means occurrence in 1st, 3rd and 4th timestamp
@@ -715,7 +713,7 @@ find_reg_pairs_of_with_cutoff<-function(x,cutoff){
   
   ####Combning all
   all_pairs<-rbind(g1_pair,g2_pair,g3_pair,g4_pair)
-  
+          
   out<-all_pairs%>%
     group_by(Ref_vertex,Vertex)%>%
     summarise(wt_copurchase_cnt=sum(flag))%>%
@@ -734,9 +732,9 @@ for(i in 1:nrow(AllComms)){
   out[[i]]<-find_reg_pairs_of_with_cutoff(AllComms[i,"Vertex"],7)
 }
 
-
 #-----Hub and Authority Score for  pairs
 find_hub_auth<-function(x){
+  
   hub_score_x<-hub_score(x, weights=NA)$vector
   return(hub_score_x)
   
